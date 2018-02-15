@@ -1,0 +1,3 @@
+package cn.nextours.springboot.annotation
+
+annotation class OpenForSpringAnnotation

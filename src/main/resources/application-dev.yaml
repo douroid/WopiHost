@@ -1,0 +1,28 @@
+server:
+  port: 80
+
+logging:
+  level:
+    root: info
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/springboot?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC&useSSL=false&autoReconnect=true&allowMultiQueries=true
+    username: root
+    password: root
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+#    generate-ddl: true
+#    database: mysql
+
+  jackson:
+    property-naming-strategy: UPPER_CAMEL_CASE
+
+wopi:
+  owa_url: http://192.168.56.105
+  check_file_info_url: http://192.168.199.209/wopi/files
+  docs_dir: e:/docs
