@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import java.net.HttpURLConnection
 import java.nio.file.Paths
-import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @OpenForSpringAnnotation
@@ -29,7 +28,6 @@ class WopiController {
     @GetMapping("/router/$FILE_NAME_PATH_VARIABLE")
     fun router(@PathVariable("filename") filename: String,
                @RequestParam(value = "editable", required = false, defaultValue = "false") editable: Boolean,
-               req: HttpServletRequest,
                resp: HttpServletResponse) {
         logger.info(">>>>>Router[filename: $filename, editable: $editable]")
 
@@ -51,7 +49,6 @@ class WopiController {
     @GetMapping("/files/$FILE_NAME_PATH_VARIABLE")
     fun checkFileInfo(@PathVariable("filename") filename: String,
                       @RequestParam("access_token") access_token: String,
-                      req: HttpServletRequest,
                       resp: HttpServletResponse): WopiCheckFileInfo? {
         logger.info(">>>>>CheckFileInfo[filename: $filename, access_token: $access_token]")
 
@@ -70,7 +67,7 @@ class WopiController {
     @GetMapping("/files/$FILE_NAME_PATH_VARIABLE/contents")
     fun getFile(@PathVariable("filename") filename: String,
                 @RequestParam("access_token") access_token: String,
-                req: HttpServletRequest,
+                @RequestHeader(value = KEY_X_WOPI_MAX_EXPECTED_SIZE, required = true) maxExpectedSize: Long,
                 resp: HttpServletResponse) {
         logger.info(">>>>>GetFile[filename: $filename, access_token: $access_token]")
 
@@ -80,7 +77,6 @@ class WopiController {
             return
         }
 
-        val maxExpectedSize = req.getHeader(KEY_X_WOPI_MAX_EXPECTED_SIZE).toLong()
         if (file.length() > maxExpectedSize) {
             resp.status = HttpURLConnection.HTTP_PRECON_FAILED
             return
@@ -104,18 +100,17 @@ class WopiController {
     @PostMapping("/files/$FILE_NAME_PATH_VARIABLE/contents")
     fun putFile(@PathVariable("filename") filename: String,
                 @RequestParam("access_token") access_token: String,
+                @RequestHeader(value = KEY_X_WOPI_OVERRIDE, required = true) override: String,
+                @RequestHeader(value = KEY_X_WOPI_LOCK, defaultValue = "") lock: String,
                 @RequestBody content: ByteArray,
-                req: HttpServletRequest,
                 resp: HttpServletResponse) {
         logger.info(">>>>>PutFile[filename: $filename, access_token: $access_token, Body Size: ${content.size}]")
 
-        val override = req.getHeader(KEY_X_WOPI_OVERRIDE)
         if (override != X_WOPI_OVERRIDE_PUT) {
             resp.status = HttpURLConnection.HTTP_BAD_REQUEST
             return
         }
 
-        val lock = req.getHeader(KEY_X_WOPI_LOCK)
         val l = lockService?.getLock(filename)
         if (l == null || content.isEmpty()) {
             //must check the current size of the file.
@@ -156,7 +151,6 @@ class WopiController {
                  @RequestHeader(value = KEY_X_WOPI_OVERRIDE, required = true) override: String,
                  @RequestHeader(value = KEY_X_WOPI_LOCK, defaultValue = "") lock: String,
                  @RequestHeader(value = KEY_X_WOPI_OLDLOCK) oldLock: String?,
-                 req: HttpServletRequest,
                  resp: HttpServletResponse) {
 
         if (override != X_WOPI_OVERRIDE_GET_LOCK && lock.isBlank()) {
