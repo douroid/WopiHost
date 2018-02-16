@@ -26,7 +26,7 @@ class WopiController {
     @Autowired
     private var lockService: LockService? = null
 
-    @RequestMapping(value = ["/router/{filename:[a-zA-Z0-9.]+}"], method = [RequestMethod.GET])
+    @GetMapping("/router/$FILE_NAME_PATH_VARIABLE")
     fun router(@PathVariable("filename") filename: String,
                @RequestParam(value = "editable", required = false, defaultValue = "false") editable: Boolean,
                req: HttpServletRequest,
@@ -48,7 +48,7 @@ class WopiController {
         resp.addHeader("Location", locationUrl)
     }
 
-    @RequestMapping(value = ["/files/{filename:[a-zA-Z0-9.]+}"], method = [RequestMethod.GET])
+    @GetMapping("/files/$FILE_NAME_PATH_VARIABLE")
     fun checkFileInfo(@PathVariable("filename") filename: String,
                       @RequestParam("access_token") access_token: String,
                       req: HttpServletRequest,
@@ -67,7 +67,7 @@ class WopiController {
         return fileInfo
     }
 
-    @RequestMapping(value = ["/files/{filename:[a-zA-Z0-9.]+}/contents"], method = [RequestMethod.GET])
+    @GetMapping("/files/$FILE_NAME_PATH_VARIABLE/contents")
     fun getFile(@PathVariable("filename") filename: String,
                 @RequestParam("access_token") access_token: String,
                 req: HttpServletRequest,
@@ -101,7 +101,7 @@ class WopiController {
         logger.info("GetFile[version: ${file.lastModified()}]")
     }
 
-    @RequestMapping(value = ["/files/{filename:[a-zA-Z0-9.]+}/contents"], method = [RequestMethod.POST])
+    @PostMapping("/files/$FILE_NAME_PATH_VARIABLE/contents")
     fun putFile(@PathVariable("filename") filename: String,
                 @RequestParam("access_token") access_token: String,
                 @RequestBody content: ByteArray,
@@ -150,7 +150,7 @@ class WopiController {
         }
     }
 
-    @RequestMapping(value = ["/files/{filename:[a-zA-Z0-9.]+}"], method = [RequestMethod.POST])
+    @PostMapping("/files/$FILE_NAME_PATH_VARIABLE")
     fun override(@PathVariable("filename") filename: String,
                  @RequestParam("access_token") access_token: String,
                  @RequestHeader(value = KEY_X_WOPI_OVERRIDE, required = true) override: String,
@@ -164,7 +164,7 @@ class WopiController {
             return
         }
 
-        val response = when (override) {
+        val lockResult = when (override) {
             X_WOPI_OVERRIDE_LOCK -> {
                 if (oldLock.isNullOrBlank()) {
                     lock(filename, lock)
@@ -186,44 +186,44 @@ class WopiController {
             }
             else -> {
                 logger.warn("Not Supported[override: $override, lock: $lock]")
-                LockResponse(HttpURLConnection.HTTP_NOT_IMPLEMENTED, "")
+                LockResult(HttpURLConnection.HTTP_NOT_IMPLEMENTED, "")
             }
         }
 
         with(resp) {
-            status = response.status
-            addHeader(KEY_X_WOPI_LOCK, response.lock)
-            if (response.reason != null) {
-                addHeader(KEY_X_WOPI_LOCK_FAILURE_REASON, response.reason)
+            status = lockResult.status
+            addHeader(KEY_X_WOPI_LOCK, lockResult.lock)
+            if (!lockResult.reason.isNullOrBlank()) {
+                addHeader(KEY_X_WOPI_LOCK_FAILURE_REASON, lockResult.reason)
             }
         }
     }
 
     private fun lock(filename: String,
-                     lock: String): LockResponse {
+                     lock: String): LockResult {
         logger.info(">>>>>Lock[lock: $lock]")
 
         return try {
             lockService?.lock(filename, lock)
             logger.info("$filename is Locked!")
-            LockResponse(HttpURLConnection.HTTP_OK, lock)
+            LockResult(HttpURLConnection.HTTP_OK, lock)
         } catch (e: ConflictException) {
             logger.info("$filename lock failed!")
-            LockResponse(e.status, e.lock, e.message)
+            LockResult(e.status, e.lock, e.message)
         }
     }
 
     private fun unlock(filename: String,
-                       lock: String): LockResponse {
+                       lock: String): LockResult {
         logger.info(">>>>>Unlock[lock: $lock]")
 
         return try {
             lockService?.unlock(filename, lock)
             logger.info("$filename is Unlocked!")
-            LockResponse(HttpURLConnection.HTTP_OK, lock)
+            LockResult(HttpURLConnection.HTTP_OK, lock)
         } catch (e: ConflictException) {
             logger.info("$filename unlock failed!")
-            LockResponse(e.status, e.lock, e.message)
+            LockResult(e.status, e.lock, e.message)
         }
     }
 
@@ -233,46 +233,46 @@ class WopiController {
      * Instead, Office Online will sometimes execute lock-related operations on files with missing or
      * known incorrect lock IDs and expects the host to provide the current lock ID in its WOPI response.
      */
-    private fun getLock(filename: String): LockResponse {
+    private fun getLock(filename: String): LockResult {
         logger.info(">>>>>GetLock[filename: $filename]")
 
         val lock = lockService?.getLock(filename)
         logger.info("$filename's lock is ${lock?.lock ?: "Not Found"}")
-        return LockResponse(HttpURLConnection.HTTP_OK, lock?.lock ?: "")
+        return LockResult(HttpURLConnection.HTTP_OK, lock?.lock ?: "")
     }
 
     private fun refreshLock(filename: String,
-                            lock: String): LockResponse {
+                            lock: String): LockResult {
         logger.info(">>>>>RefreshLock[filename: $filename, lock: $lock]")
 
         return try {
             lockService?.refreshLock(filename, lock)
             logger.info("$filename is refresh lock")
-            LockResponse(HttpURLConnection.HTTP_OK, lock)
+            LockResult(HttpURLConnection.HTTP_OK, lock)
         } catch (e: ConflictException) {
             logger.info("$filename is refresh lock failed")
-            LockResponse(e.status, e.lock, e.message)
+            LockResult(e.status, e.lock, e.message)
         }
     }
 
     private fun unlockAndRelock(filename: String,
                                 lock: String,
-                                oldLock: String?): LockResponse {
+                                oldLock: String?): LockResult {
         logger.info(">>>>>UnlockAndRelock[filename: $filename, lock: $lock, oldLock: $oldLock]")
 
         return try {
             lockService?.unlockAndRelock(filename, lock, oldLock)
             logger.info("$filename is unlockAndRelock")
-            LockResponse(HttpURLConnection.HTTP_OK, lock)
+            LockResult(HttpURLConnection.HTTP_OK, lock)
         } catch (e: ConflictException) {
             logger.info("$filename is unlockAndRelock failed")
-            LockResponse(e.status, e.lock, e.message)
+            LockResult(e.status, e.lock, e.message)
         }
     }
 
-    private fun putRelativeFile(filename: String): LockResponse {
+    private fun putRelativeFile(filename: String): LockResult {
         logger.info(">>>>>PutRelativeFile[filename: $filename]")
-        return LockResponse(HttpURLConnection.HTTP_NOT_IMPLEMENTED, "")
+        return LockResult(HttpURLConnection.HTTP_NOT_IMPLEMENTED, "")
         // TODO disabled
     }
 
@@ -296,15 +296,8 @@ class WopiController {
 
         private val logger: Logger = LoggerFactory.getLogger(WopiController::class.java)
 
-        private fun parsingExtension(filename: String?): String? {
-            val lastIndexOf = filename?.lastIndexOf(".") ?: -1
-            return if (lastIndexOf < 0) {
-                ""
-            } else {
-                filename?.substring(lastIndexOf)
-            }
-        }
+        private const val FILE_NAME_PATH_VARIABLE = "{filename:[a-zA-Z0-9.]+}"
     }
 
-    private data class LockResponse(val status: Int, val lock: String, val reason: String? = null)
+    private data class LockResult(val status: Int, val lock: String, val reason: String? = null)
 }

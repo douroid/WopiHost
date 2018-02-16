@@ -3,13 +3,13 @@ package cn.nextours.springboot.index.controller
 import cn.nextours.springboot.annotation.OpenForSpringAnnotation
 import org.springframework.stereotype.Controller
 import org.springframework.ui.ModelMap
-import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.GetMapping
 
 @OpenForSpringAnnotation
 @Controller
 class IndexController {
 
-    @RequestMapping("/")
+    @GetMapping("/")
     fun home(model: ModelMap): String {
         with(model) {
             addAttribute("name", "Jack")
