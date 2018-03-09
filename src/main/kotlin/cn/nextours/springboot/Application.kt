@@ -10,6 +10,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
+import springfox.documentation.spi.DocumentationType
+import springfox.documentation.spring.web.plugins.Docket
+import springfox.documentation.swagger.web.*
+import springfox.documentation.swagger2.annotations.EnableSwagger2
 
 @OpenForSpringAnnotation
 @SpringBootApplication //same as @Configuration @EnableAutoConfiguration @ComponentScan
@@ -18,18 +22,44 @@ class Application
 
 @OpenForSpringAnnotation
 @Configuration
+@EnableSwagger2
 class WebConfiguration : WebMvcConfigurer {
     @Bean
     @ConfigurationProperties(prefix = "wopi")
     fun wopiConfiguration(): WopiConfiguration {
         return WopiConfiguration()
     }
+
+    @Bean
+    fun wopiApi(): Docket = Docket(DocumentationType.SWAGGER_2)
+            .groupName("wopi-api")
+            .select()
+            .paths { path -> path?.startsWith("/wopi/") ?: false }
+            .build()
+
+    @Bean
+    fun uiConfig(): UiConfiguration = UiConfigurationBuilder.builder()
+            .deepLinking(true)
+            .displayOperationId(false)
+            .defaultModelsExpandDepth(1)
+            .defaultModelExpandDepth(1)
+            .defaultModelRendering(ModelRendering.EXAMPLE)
+            .displayRequestDuration(false)
+            .docExpansion(DocExpansion.LIST)
+            .filter(false)
+            .maxDisplayedTags(null)
+            .operationsSorter(OperationsSorter.ALPHA)
+            .showExtensions(false)
+            .tagsSorter(TagsSorter.ALPHA)
+            .validatorUrl(null)
+            .build()
+
 }
 
 fun main(args: Array<String>) {
     val app = SpringApplication(Application::class.java)
     with(app) {
-        setBannerMode(Banner.Mode.CONSOLE)
+        setBannerMode(Banner.Mode.OFF)
         webApplicationType = WebApplicationType.SERVLET
         run(*args)
     }

@@ -11,11 +11,7 @@ class IndexController {
 
     @GetMapping("/")
     fun home(model: ModelMap): String {
-        with(model) {
-            addAttribute("name", "Jack")
-            addAttribute("title", "Kotlin")
-        }
-        return "index"
+        return "redirect:swagger-ui.html"
     }
 
 }
