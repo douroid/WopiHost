@@ -48,9 +48,9 @@ class WopiController {
 
     @GetMapping("/files/$FILE_NAME_PATH_VARIABLE")
     fun checkFileInfo(@PathVariable("filename") filename: String,
-                      @RequestParam("access_token") access_token: String,
+                      @RequestParam("access_token") accessToken: String,
                       resp: HttpServletResponse): WopiCheckFileInfo? {
-        logger.info(">>>>>CheckFileInfo[filename: $filename, access_token: $access_token]")
+        logger.info(">>>>>CheckFileInfo[filename: $filename, accessToken: $accessToken]")
 
         val file = Paths.get(configuration?.docs_dir, filename).toFile()
         if (file == null || !file.exists()) {
@@ -58,7 +58,7 @@ class WopiController {
             return null
         }
 
-        val fileInfo = WopiCheckFileInfo(file.name, "Peng", "Peng", "${file.lastModified()}", file.length())
+        val fileInfo = WopiCheckFileInfo(file.name, "Peng", "Peng", "Peng", "${file.lastModified()}", file.length())
         logger.info(fileInfo.toString())
 
         return fileInfo
@@ -66,10 +66,10 @@ class WopiController {
 
     @GetMapping("/files/$FILE_NAME_PATH_VARIABLE/contents")
     fun getFile(@PathVariable("filename") filename: String,
-                @RequestParam("access_token") access_token: String,
+                @RequestParam("access_token") accessToken: String,
                 @RequestHeader(value = KEY_X_WOPI_MAX_EXPECTED_SIZE, required = true) maxExpectedSize: Long,
                 resp: HttpServletResponse) {
-        logger.info(">>>>>GetFile[filename: $filename, access_token: $access_token]")
+        logger.info(">>>>>GetFile[filename: $filename, accessToken: $accessToken]")
 
         val file = Paths.get(configuration?.docs_dir, filename).toFile()
         if (file == null) {
@@ -99,12 +99,12 @@ class WopiController {
 
     @PostMapping("/files/$FILE_NAME_PATH_VARIABLE/contents")
     fun putFile(@PathVariable("filename") filename: String,
-                @RequestParam("access_token") access_token: String,
+                @RequestParam("access_token") accessToken: String,
                 @RequestHeader(value = KEY_X_WOPI_OVERRIDE, required = true) override: String,
                 @RequestHeader(value = KEY_X_WOPI_LOCK, defaultValue = "") lock: String,
                 @RequestBody content: ByteArray,
                 resp: HttpServletResponse) {
-        logger.info(">>>>>PutFile[filename: $filename, access_token: $access_token, Body Size: ${content.size}]")
+        logger.info(">>>>>PutFile[filename: $filename, accessToken: $accessToken, Body Size: ${content.size}]")
 
         if (override != X_WOPI_OVERRIDE_PUT) {
             resp.status = HttpURLConnection.HTTP_BAD_REQUEST
@@ -147,7 +147,7 @@ class WopiController {
 
     @PostMapping("/files/$FILE_NAME_PATH_VARIABLE")
     fun override(@PathVariable("filename") filename: String,
-                 @RequestParam("access_token") access_token: String,
+                 @RequestParam("access_token") accessToken: String,
                  @RequestHeader(value = KEY_X_WOPI_OVERRIDE, required = true) override: String,
                  @RequestHeader(value = KEY_X_WOPI_LOCK, defaultValue = "") lock: String,
                  @RequestHeader(value = KEY_X_WOPI_OLDLOCK) oldLock: String?,
