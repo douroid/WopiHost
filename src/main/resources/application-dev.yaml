@@ -10,6 +10,9 @@ spring:
     property-naming-strategy: UPPER_CAMEL_CASE
 
 wopi:
-  owa_url: http://192.168.56.105
-  check_file_info_url: http://192.168.199.209/wopi/files
-  docs_dir: e:/docs
+  owa:
+    uri: http://192.168.56.105
+  file-info:
+    uri: http://192.168.199.209/wopi/files
+  docs:
+    uri: e:/docs

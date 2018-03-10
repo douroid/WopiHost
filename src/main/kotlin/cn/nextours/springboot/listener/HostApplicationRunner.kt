@@ -1,4 +1,4 @@
-package cn.nextours.springboot
+package cn.nextours.springboot.listener
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
@@ -11,10 +11,7 @@ class HostApplicationRunner : ApplicationRunner {
     private val logger = LoggerFactory.getLogger(HostApplicationRunner::class.java)
 
     override fun run(args: ApplicationArguments?) {
-        logger.info("##################")
-        args?.optionNames?.forEach {
-            logger.info("name: $it, value: ${args.getOptionValues(it)}")
-        }
+        logger.info("..........HostApplicationRunner..........")
     }
 
 }

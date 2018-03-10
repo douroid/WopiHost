@@ -10,55 +10,51 @@ import org.springframework.stereotype.Service
 
 @OpenForSpringAnnotation
 @Service
-class LockService {
-
-    @Autowired
-    @Qualifier("defaultLockRepository")
-    private var lockRepository: LockRepository? = null
+class LockService(@Autowired @Qualifier("defaultLockRepository") private val lockRepository: LockRepository) {
 
     fun lock(filename: String, lock: String) {
-        val l = lockRepository?.findOne(filename)
+        val l = lockRepository.findOne(filename)
         val currentTimeMillis = System.currentTimeMillis()
         if (l == null) {
-            lockRepository?.save(filename, lock, currentTimeMillis)
+            lockRepository.save(filename, lock, currentTimeMillis)
         } else if (l.lock == lock
                 || currentTimeMillis - l.lastTime > LOCK_EXPIRE) {
-            lockRepository?.update(filename, lock, currentTimeMillis)
+            lockRepository.update(filename, lock, currentTimeMillis)
         } else {
             throw ConflictException("lock mismatch", l.lock)
         }
     }
 
     fun unlock(filename: String, lock: String) {
-        val l = lockRepository?.findOne(filename)
+        val l = lockRepository.findOne(filename)
         if (l == null || l.lock != lock) {
             throw ConflictException("lock mismatch", l?.lock ?: "")
         } else {
-            lockRepository?.delete(filename)
+            lockRepository.delete(filename)
         }
     }
 
     fun getLock(filename: String): WopiLock? {
-        return lockRepository?.findOne(filename)
+        return lockRepository.findOne(filename)
     }
 
     fun refreshLock(filename: String, lock: String) {
-        val l = lockRepository?.findOne(filename)
+        val l = lockRepository.findOne(filename)
         val currentTimeMillis = System.currentTimeMillis()
         if (l == null
                 || (l.lock != lock && currentTimeMillis - l.lastTime <= LOCK_EXPIRE)) {
             throw ConflictException("lock mismatch", l?.lock ?: "")
         } else {
-            lockRepository?.update(filename, lock, System.currentTimeMillis())
+            lockRepository.update(filename, lock, System.currentTimeMillis())
         }
     }
 
     fun unlockAndRelock(filename: String, lock: String, oldLock: String?) {
-        val l = lockRepository?.findOne(filename)
+        val l = lockRepository.findOne(filename)
         if (l == null || l.lock != oldLock) {
             throw ConflictException("lock mismatch", l?.lock ?: "")
         } else {
-            lockRepository?.update(filename, lock, System.currentTimeMillis())
+            lockRepository.update(filename, lock, System.currentTimeMillis())
         }
     }
 

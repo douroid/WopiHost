@@ -1,0 +1,7 @@
+org.springframework.context.ApplicationListener=\
+  cn.nextours.springboot.listener.ApplicationPreparedEventListener,\
+  cn.nextours.springboot.listener.ApplicationStartedEventListener,\
+  cn.nextours.springboot.listener.ApplicationReadyEventListener,\
+  cn.nextours.springboot.listener.ApplicationStartingEventListener,\
+  cn.nextours.springboot.listener.ApplicationEnvironmentPreparedEventListener,\
+  cn.nextours.springboot.listener.ApplicationFailedEventListener

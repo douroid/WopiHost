@@ -1,5 +1,12 @@
 package cn.nextours.springboot.wopi.domain
 
-data class WopiConfiguration(var owa_url: String = "",
-                             var check_file_info_url: String = "",
-                             var docs_dir: String = "")
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
+
+@Component
+@ConfigurationProperties(prefix = "wopi")
+data class WopiConfiguration(var owa: Uri = Uri(),
+                             var fileInfo: Uri = Uri(),
+                             var docs: Uri = Uri())
+
+data class Uri(var uri: String = "")

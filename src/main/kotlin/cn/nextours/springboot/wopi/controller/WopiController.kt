@@ -18,12 +18,8 @@ import javax.servlet.http.HttpServletResponse
 @OpenForSpringAnnotation
 @RequestMapping("/wopi")
 @RestController
-class WopiController {
-
-    @Autowired
-    private var configuration: WopiConfiguration? = null
-    @Autowired
-    private var lockService: LockService? = null
+class WopiController(@Autowired private val configuration: WopiConfiguration,
+                     @Autowired private val lockService: LockService) {
 
     @GetMapping("/router/$FILE_NAME_PATH_VARIABLE")
     fun router(@PathVariable("filename") filename: String,
@@ -31,7 +27,7 @@ class WopiController {
                resp: HttpServletResponse) {
         logger.info(">>>>>Router[filename: $filename, editable: $editable]")
 
-        val file = Paths.get(configuration?.docs_dir, filename).toFile()
+        val file = Paths.get(configuration.docs.uri, filename).toFile()
         if (file == null || !file.exists()) {
             resp.status = HttpURLConnection.HTTP_NOT_FOUND
             return
@@ -40,7 +36,7 @@ class WopiController {
         val token = WopiAccessToken(editable)
 
         val app = App.match(file.extension, editable)
-        val locationUrl = app.resolveURL(configuration?.owa_url, "${configuration?.check_file_info_url}/$filename", token.toString())
+        val locationUrl = app.resolveURL(configuration.owa.uri, "${configuration.fileInfo.uri}/$filename", token.toString())
 
         resp.status = HttpURLConnection.HTTP_MOVED_TEMP
         resp.addHeader("Location", locationUrl)
@@ -52,7 +48,7 @@ class WopiController {
                       resp: HttpServletResponse): WopiCheckFileInfo? {
         logger.info(">>>>>CheckFileInfo[filename: $filename, accessToken: $accessToken]")
 
-        val file = Paths.get(configuration?.docs_dir, filename).toFile()
+        val file = Paths.get(configuration.docs.uri, filename).toFile()
         if (file == null || !file.exists()) {
             resp.status = HttpURLConnection.HTTP_NOT_FOUND
             return null
@@ -67,11 +63,11 @@ class WopiController {
     @GetMapping("/files/$FILE_NAME_PATH_VARIABLE/contents")
     fun getFile(@PathVariable("filename") filename: String,
                 @RequestParam("access_token") accessToken: String,
-                @RequestHeader(value = KEY_X_WOPI_MAX_EXPECTED_SIZE, required = true) maxExpectedSize: Long,
+                @RequestHeader(value = KEY_X_WOPI_MAX_EXPECTED_SIZE) maxExpectedSize: Long,
                 resp: HttpServletResponse) {
         logger.info(">>>>>GetFile[filename: $filename, accessToken: $accessToken]")
 
-        val file = Paths.get(configuration?.docs_dir, filename).toFile()
+        val file = Paths.get(configuration.docs.uri, filename).toFile()
         if (file == null) {
             resp.status = HttpURLConnection.HTTP_NOT_FOUND
             return
@@ -100,8 +96,8 @@ class WopiController {
     @PostMapping("/files/$FILE_NAME_PATH_VARIABLE/contents")
     fun putFile(@PathVariable("filename") filename: String,
                 @RequestParam("access_token") accessToken: String,
-                @RequestHeader(value = KEY_X_WOPI_OVERRIDE, required = true) override: String,
-                @RequestHeader(value = KEY_X_WOPI_LOCK, defaultValue = "") lock: String,
+                @RequestHeader(value = KEY_X_WOPI_OVERRIDE) override: String,
+                @RequestHeader(value = KEY_X_WOPI_LOCK, required = false, defaultValue = "") lock: String,
                 @RequestBody content: ByteArray,
                 resp: HttpServletResponse) {
         logger.info(">>>>>PutFile[filename: $filename, accessToken: $accessToken, Body Size: ${content.size}]")
@@ -111,7 +107,7 @@ class WopiController {
             return
         }
 
-        val l = lockService?.getLock(filename)
+        val l = lockService.getLock(filename)
         if (l == null || content.isEmpty()) {
             //must check the current size of the file.
             // If it is 0 bytes, the PutFile request should be considered valid and should proceed.
@@ -123,7 +119,7 @@ class WopiController {
             }
             logger.warn("file or content conflict")
         } else if (l.lock == lock) {
-            val file = Paths.get(configuration?.docs_dir, filename).toFile()
+            val file = Paths.get(configuration.docs.uri, filename).toFile()
 
             with(file) {
                 if (!exists()) {
@@ -148,9 +144,9 @@ class WopiController {
     @PostMapping("/files/$FILE_NAME_PATH_VARIABLE")
     fun override(@PathVariable("filename") filename: String,
                  @RequestParam("access_token") accessToken: String,
-                 @RequestHeader(value = KEY_X_WOPI_OVERRIDE, required = true) override: String,
-                 @RequestHeader(value = KEY_X_WOPI_LOCK, defaultValue = "") lock: String,
-                 @RequestHeader(value = KEY_X_WOPI_OLDLOCK) oldLock: String?,
+                 @RequestHeader(value = KEY_X_WOPI_OVERRIDE) override: String,
+                 @RequestHeader(value = KEY_X_WOPI_LOCK, required = false, defaultValue = "") lock: String,
+                 @RequestHeader(value = KEY_X_WOPI_OLDLOCK, required = false) oldLock: String?,
                  resp: HttpServletResponse) {
 
         if (override != X_WOPI_OVERRIDE_GET_LOCK && lock.isBlank()) {
@@ -198,7 +194,7 @@ class WopiController {
         logger.info(">>>>>Lock[lock: $lock]")
 
         return try {
-            lockService?.lock(filename, lock)
+            lockService.lock(filename, lock)
             logger.info("$filename is Locked!")
             LockResult(HttpURLConnection.HTTP_OK, lock)
         } catch (e: ConflictException) {
@@ -212,7 +208,7 @@ class WopiController {
         logger.info(">>>>>Unlock[lock: $lock]")
 
         return try {
-            lockService?.unlock(filename, lock)
+            lockService.unlock(filename, lock)
             logger.info("$filename is Unlocked!")
             LockResult(HttpURLConnection.HTTP_OK, lock)
         } catch (e: ConflictException) {
@@ -230,7 +226,7 @@ class WopiController {
     private fun getLock(filename: String): LockResult {
         logger.info(">>>>>GetLock[filename: $filename]")
 
-        val lock = lockService?.getLock(filename)
+        val lock = lockService.getLock(filename)
         logger.info("$filename's lock is ${lock?.lock ?: "Not Found"}")
         return LockResult(HttpURLConnection.HTTP_OK, lock?.lock ?: "")
     }
@@ -240,7 +236,7 @@ class WopiController {
         logger.info(">>>>>RefreshLock[filename: $filename, lock: $lock]")
 
         return try {
-            lockService?.refreshLock(filename, lock)
+            lockService.refreshLock(filename, lock)
             logger.info("$filename is refresh lock")
             LockResult(HttpURLConnection.HTTP_OK, lock)
         } catch (e: ConflictException) {
@@ -255,7 +251,7 @@ class WopiController {
         logger.info(">>>>>UnlockAndRelock[filename: $filename, lock: $lock, oldLock: $oldLock]")
 
         return try {
-            lockService?.unlockAndRelock(filename, lock, oldLock)
+            lockService.unlockAndRelock(filename, lock, oldLock)
             logger.info("$filename is unlockAndRelock")
             LockResult(HttpURLConnection.HTTP_OK, lock)
         } catch (e: ConflictException) {
