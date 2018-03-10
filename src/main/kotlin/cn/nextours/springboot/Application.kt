@@ -2,13 +2,17 @@ package cn.nextours.springboot
 
 import cn.nextours.springboot.annotation.OpenForSpringAnnotation
 import cn.nextours.springboot.wopi.domain.WopiConfiguration
+import org.slf4j.LoggerFactory
 import org.springframework.boot.Banner
-import org.springframework.boot.SpringApplication
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.ApplicationEvent
+import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.ImportResource
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 import springfox.documentation.builders.ApiInfoBuilder
 import springfox.documentation.service.Contact
@@ -20,6 +24,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2
 @OpenForSpringAnnotation
 @SpringBootApplication //same as @Configuration @EnableAutoConfiguration @ComponentScan
 //@Import(WebConfiguration::class)
+//@ImportResource()
 class Application
 
 @OpenForSpringAnnotation
@@ -78,11 +83,19 @@ class WebConfiguration : WebMvcConfigurer {
 
 }
 
-fun main(args: Array<String>) {
-    val app = SpringApplication(Application::class.java)
-    with(app) {
-        setBannerMode(Banner.Mode.OFF)
-        webApplicationType = WebApplicationType.SERVLET
-        run(*args)
+class ApplicationListener1 : ApplicationListener<ApplicationEvent> {
+    private val logger = LoggerFactory.getLogger(ApplicationListener1::class.java)
+    override fun onApplicationEvent(event: ApplicationEvent) {
+        logger.info("@@@@@@@@@@@Event: $event@@@@@@@@@@@")
     }
+
+}
+
+fun main(args: Array<String>) {
+    SpringApplicationBuilder()
+            .sources(Application::class.java)
+            .web(WebApplicationType.SERVLET)
+            .bannerMode(Banner.Mode.OFF)
+            .listeners(ApplicationListener1())
+            .run(*args)
 }

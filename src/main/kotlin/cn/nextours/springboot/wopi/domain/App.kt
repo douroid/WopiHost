@@ -2,7 +2,7 @@ package cn.nextours.springboot.wopi.domain
 
 import java.util.*
 
-abstract class App(protected val editable: Boolean = false) {
+abstract class App(protected val editable: Boolean) {
 
     abstract fun resolveURL(owaUrl: String?, checkFileInfoUrl: String?, accessToken: String?): String
 
@@ -10,7 +10,7 @@ abstract class App(protected val editable: Boolean = false) {
         return "${this.javaClass.name}[editable=$editable]"
     }
 
-    class Word(editable: Boolean) : App(editable) {
+    class Word(editable: Boolean = false) : App(editable) {
         override fun resolveURL(owaUrl: String?, checkFileInfoUrl: String?, accessToken: String?): String {
             return if (editable) {
                 "$owaUrl/we/wordeditorframe.aspx?WOPISrc=$checkFileInfoUrl&access_token=$accessToken"
@@ -20,7 +20,7 @@ abstract class App(protected val editable: Boolean = false) {
         }
     }
 
-    class Excel(editable: Boolean) : App(editable) {
+    class Excel(editable: Boolean = false) : App(editable) {
         override fun resolveURL(owaUrl: String?, checkFileInfoUrl: String?, accessToken: String?): String {
             val url = "$owaUrl/x/_layouts/xlviewerinternal.aspx?WOPISrc=$checkFileInfoUrl&access_token=$accessToken"
             return if (editable) {
@@ -31,7 +31,7 @@ abstract class App(protected val editable: Boolean = false) {
         }
     }
 
-    class PowerPoint(editable: Boolean) : App(editable) {
+    class PowerPoint(editable: Boolean = false) : App(editable) {
         override fun resolveURL(owaUrl: String?, checkFileInfoUrl: String?, accessToken: String?): String {
             val url = "$owaUrl/p/PowerPointFrame.aspx?&WOPISrc=$checkFileInfoUrl&access_token=$accessToken"
             return if (editable) {
@@ -62,13 +62,13 @@ abstract class App(protected val editable: Boolean = false) {
 
         fun match(extension: String, editable: Boolean): App =
                 when (extension.toLowerCase(Locale.getDefault())) {
-                    in WORD_PREVIEW_EXTENSIONS -> Word(false)
+                    in WORD_PREVIEW_EXTENSIONS -> Word()
                     in WORD_PREVIEW_AND_EDIT_EXTENSIONS -> Word(editable)
 
-                    in EXCEL_PREVIEW_EXTENSIONS -> Excel(false)
+                    in EXCEL_PREVIEW_EXTENSIONS -> Excel()
                     in EXCEL_PREVIEW_AND_EDIT_EXTENSIONS -> Excel(editable)
 
-                    in PPT_PREVIEW_EXTENSIONS -> PowerPoint(false)
+                    in PPT_PREVIEW_EXTENSIONS -> PowerPoint()
                     in PPT_PREVIEW_AND_EDIT_EXTENSIONS -> PowerPoint(editable)
 
                     PORTABLE_DOCUMENT_FORMAT -> Pdf()
