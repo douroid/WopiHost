@@ -1,6 +1,5 @@
 package cn.nextours.springboot.wopi.controller
 
-import cn.nextours.springboot.annotation.OpenForSpringAnnotation
 import cn.nextours.springboot.wopi.ConflictException
 import cn.nextours.springboot.wopi.domain.App
 import cn.nextours.springboot.wopi.domain.WopiAccessToken
@@ -15,7 +14,6 @@ import java.net.HttpURLConnection
 import java.nio.file.Paths
 import javax.servlet.http.HttpServletResponse
 
-@OpenForSpringAnnotation
 @RequestMapping("/wopi")
 @RestController
 class WopiController(@Autowired private val configuration: WopiConfiguration,

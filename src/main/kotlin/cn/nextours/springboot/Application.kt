@@ -1,10 +1,9 @@
 package cn.nextours.springboot
 
-import cn.nextours.springboot.annotation.OpenForSpringAnnotation
 import org.springframework.boot.Banner
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
@@ -15,13 +14,11 @@ import springfox.documentation.spring.web.plugins.Docket
 import springfox.documentation.swagger.web.*
 import springfox.documentation.swagger2.annotations.EnableSwagger2
 
-@OpenForSpringAnnotation
 @SpringBootApplication //same as @Configuration @EnableAutoConfiguration @ComponentScan
 //@Import(WebConfiguration::class)
 //@ImportResource()
 class Application
 
-@OpenForSpringAnnotation
 @Configuration
 @EnableSwagger2
 class WebConfiguration : WebMvcConfigurer {
@@ -72,9 +69,8 @@ class WebConfiguration : WebMvcConfigurer {
 }
 
 fun main(args: Array<String>) {
-    SpringApplicationBuilder()
-            .sources(Application::class.java)
-            .web(WebApplicationType.SERVLET)
-            .bannerMode(Banner.Mode.OFF)
-            .run(*args)
+    runApplication<Application>(*args) {
+        webApplicationType = WebApplicationType.SERVLET
+        setBannerMode(Banner.Mode.OFF)
+    }
 }

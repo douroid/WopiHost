@@ -10,6 +10,6 @@ class ApplicationStartingEventListener : ApplicationListener<ApplicationStarting
     private val logger = LoggerFactory.getLogger(ApplicationStartingEventListener::class.java)
 
     override fun onApplicationEvent(event: ApplicationStartingEvent) {
-        logger.info("..........ApplicationStartingEventListener..........")
+        logger.warn("..........ApplicationStartingEventListener..........")
     }
 }

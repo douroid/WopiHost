@@ -9,6 +9,6 @@ class ApplicationPreparedEventListener : ApplicationListener<ApplicationPrepared
     private val logger = LoggerFactory.getLogger(ApplicationPreparedEventListener::class.java)
 
     override fun onApplicationEvent(event: ApplicationPreparedEvent) {
-        logger.info("..........ApplicationPreparedEventListener..........")
+        logger.warn("..........ApplicationPreparedEventListener..........")
     }
 }

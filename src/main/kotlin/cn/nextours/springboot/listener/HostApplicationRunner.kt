@@ -11,7 +11,7 @@ class HostApplicationRunner : ApplicationRunner {
     private val logger = LoggerFactory.getLogger(HostApplicationRunner::class.java)
 
     override fun run(args: ApplicationArguments?) {
-        logger.info("..........HostApplicationRunner..........")
+        logger.warn("..........HostApplicationRunner..........")
     }
 
 }

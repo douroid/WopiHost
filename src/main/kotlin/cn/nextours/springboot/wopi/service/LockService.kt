@@ -1,6 +1,5 @@
 package cn.nextours.springboot.wopi.service
 
-import cn.nextours.springboot.annotation.OpenForSpringAnnotation
 import cn.nextours.springboot.wopi.ConflictException
 import cn.nextours.springboot.wopi.domain.LockRepository
 import cn.nextours.springboot.wopi.domain.WopiLock
@@ -8,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
-@OpenForSpringAnnotation
 @Service
 class LockService(@Autowired @Qualifier("defaultLockRepository") private val lockRepository: LockRepository) {
 

@@ -10,6 +10,6 @@ class ApplicationFailedEventListener : ApplicationListener<ApplicationFailedEven
     private val logger = LoggerFactory.getLogger(ApplicationFailedEventListener::class.java)
 
     override fun onApplicationEvent(event: ApplicationFailedEvent) {
-        logger.info("..........ApplicationFailedEventListener..........")
+        logger.warn("..........ApplicationFailedEventListener..........")
     }
 }

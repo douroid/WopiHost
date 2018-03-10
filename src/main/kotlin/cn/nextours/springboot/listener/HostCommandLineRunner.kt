@@ -10,7 +10,7 @@ class HostCommandLineRunner : CommandLineRunner {
     private val logger = LoggerFactory.getLogger(HostCommandLineRunner::class.java)
 
     override fun run(vararg args: String?) {
-        logger.info("..........HostCommandLineRunner..........")
+        logger.warn("..........HostCommandLineRunner..........")
     }
 
 }

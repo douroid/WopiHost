@@ -1,9 +1,7 @@
 package cn.nextours.springboot.wopi.domain
 
-import cn.nextours.springboot.annotation.OpenForSpringAnnotation
 import org.springframework.stereotype.Repository
 
-@OpenForSpringAnnotation
 @Repository("defaultLockRepository")
 class DefaultLockRepository : LockRepository {
 
